@@ -81,3 +81,79 @@ prohour <- instacart %>%
 
 knitr::kable(prohour, caption = "Mean Hour of Order by Product and Day of the Week", digits = 2)
 ```
+# Q2
+
+```{r}
+data("brfss_smart2010")
+```
+
+
+## 1. Data Cleaning
+```{r}
+colnames(brfss_smart2010)
+brfss_smart2010 <- brfss_smart2010 %>%
+  rename(
+    class_id = ClassId,
+    data_source = DataSource,
+    geo_location = GeoLocation,
+    location_abbr = Locationabbr,
+    location_desc = Locationdesc,
+    location_id = LocationID,
+    question_id = QuestionID,
+    resp_id = RESPID,
+    topic_id = TopicId,
+  ) %>%
+    janitor::clean_names() %>%
+  filter(topic == "Overall Health",
+         response %in% c("Excellent", "Very good", "Good", "Fair", "Poor")) %>%
+  mutate(response = factor(response, 
+                           levels = c("Poor", "Fair", "Good", "Very good", "Excellent"),
+                           ordered = TRUE))
+```
+## 2. States Observed at 7 or More Locations in 2002 and 2010
+```{r}
+states <- brfss_smart2010 %>%
+  filter(year %in% c(2002, 2010)) %>%
+  group_by(year, location_abbr) %>%
+  summarise(num_entries = n_distinct(location_desc)) %>%
+  filter(num_entries >= 7)
+
+states_2002 <- states %>%
+  filter(year == 2002)  %>%
+  pull(location_abbr)
+
+states_2010 <- states %>%
+  filter(year == 2010) %>%
+  pull(location_abbr)
+```
+1). In 2002, states observed at 7 or more locations were `r paste(states_2002, collapse=", ")`.
+2). In 2010, states observed at 7 or more locations were `r paste(states_2010, collapse=", ")`.
+
+## 3. Construct a dataset and create a Spaghetti Plot for Excellent Responses
+```{r}
+excellent_responses <- brfss_smart2010 %>%
+  filter(response == "Excellent") %>%
+  group_by(year, location_abbr) %>%
+  summarise(avg_data_value = round(mean(data_value, na.rm = TRUE),2))
+
+ggplot(excellent_responses, aes(x = year, y = avg_data_value, group = location_abbr)) +
+  geom_line(aes(color = location_abbr), alpha = 0.7) +
+  labs(title = "Average value trends for each state",
+       y = "Average Data Value") +
+  theme_minimal() 
+```
+
+## 4. Two-Panel Plot for Distribution of Data Values in NY State (2006 and 2010)
+```{r}
+ny_data <- brfss_smart2010 %>%
+  filter(year %in% c(2006, 2010) & location_abbr == "NY")
+
+ggplot(ny_data, aes(x = response, y = data_value)) +
+  geom_boxplot() +
+  facet_wrap(~ year, ncol = 2) +
+  labs(title = "Distribution of Data Value for responses in NY (2006 & 2010)",
+       y = "Data Value",
+       x = "Response") +
+  theme_minimal()
+```
+
