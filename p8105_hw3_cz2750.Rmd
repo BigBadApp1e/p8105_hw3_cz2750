@@ -57,7 +57,7 @@ aisle_counts <- instacart %>%
   slice(1) %>%
   pull(aisle) 
 ```
-### commenting
+### Comment
 #### 1). There are 'r number' unique aisles.
 #### 2). The most items are ordered from the 'aisle_counts'.
 
@@ -146,7 +146,7 @@ states_2010 <- states %>%
   filter(year == 2010) %>%
   pull(location_abbr)
 ```
-### commenting
+### Comment
 #### 1). In 2002, states observed at 7 or more locations were `r paste(states_2002, collapse=", ")`.
 #### 2). In 2010, states observed at 7 or more locations were `r paste(states_2010, collapse=", ")`.
 
@@ -163,7 +163,7 @@ ggplot(excellent_responses, aes(x = year, y = avg_data_value, group = location_a
        y = "Average Data Value") +
   theme_minimal() 
 ```
-### commenting
+### Comment
 #### 1). The plot depicts the trends of "Excellent" responses over time, averaged across locations within each state. 
 #### 2). There is a dense overlap of lines around the 20-25 cutoff, suggesting that many states have averages of "excellent" responses in this range in different years.
 
@@ -180,7 +180,7 @@ ggplot(ny_data, aes(x = response, y = data_value)) +
        x = "Response") +
   theme_minimal()
 ```
-### commenting
+### Comment
 #### 1). The plot shows the health perceptions of New York State residents by county in 2006 and 2010.
 #### 2). While there are variations between counties, the overall distribution seems to be somewhat consistent over the two years.
 
@@ -202,4 +202,88 @@ nhanes_covar$bmi <- as.numeric(nhanes_covar$bmi)
 nhanes_accel$seqn <- as.integer(nhanes_accel$seqn)
 ```
 
-## 2. 
+## 2. Data filtering and Merging
+```{r}
+nhanes_covar <- nhanes_covar %>% 
+  filter(age >= 21, !is.na(sex), !is.na(age), !is.na(bmi), !is.na(education))
+
+nhanes <- inner_join(nhanes_covar, nhanes_accel, by = "seqn")
+```
+
+## 3. Encode data
+```{r}
+nhanes$sex <- factor(nhanes$sex, levels = c("1", "2"), 
+                          labels = c("Male", "Female"))
+
+nhanes$education <- factor(nhanes$education, 
+                               levels = c("1", "2", "3"), 
+                               labels = c("Less than high school", 
+                                          "High school equivalent", 
+                                          "More than high school"))
+```
+
+## 4. Reader-Friendly Table
+```{r}
+table_gender_education <- table(nhanes$sex, nhanes$education)
+
+kable(table_gender_education, caption = "Number of Men and Women in Each Education Category")
+```
+### Comment
+#### 1). There is a balanced distribution of males and females with different levels of education in the dataset.
+#### 2). More males(`r table_gender_education["Male", "High school equivalent"]`) than females(`r table_gender_education["Female", "High school equivalent"]`) have an education equivalent to high school.
+#### 3). Contrary to article 2,  females (`r table_gender_education["Female", "More than high school"]`) outnumber  males (`r table_gender_education["Male", "More than high school"]`) in terms of education levels beyond high school.
+
+## 5. Visualization of the age distributions
+```{r}
+ggplot(nhanes, aes(x = education, y = age, fill = sex)) +
+  geom_boxplot() +
+  labs(title = "Age Distribution by Sex and Education",
+       x = "Education Level",
+       y = "Age",
+       fill = "Sex") +
+  theme_minimal()
+```
+### Comment
+#### 1). The group with a education level high school equivalent has a wider age range.
+#### 2). The group with the largest gap in age distribution between male and female is the group with a education level of high school equivalent.
+
+## 6. Create a total activity variable for each participant & Plotting
+```{r}
+nhanes$total <- rowSums(nhanes[, grep("^min", names(nhanes))])
+
+ggplot(nhanes, aes(x = age, y = total, color = sex)) +
+  geom_point(aes(shape = sex), alpha = 0.5) + 
+  geom_smooth(method = "lm", se = FALSE) + 
+  facet_wrap(~ education) + 
+  labs(title = "Total Activity with Age by Sex and Education Level",
+       x = "Age",
+       y = "Total Activity",
+       color = "Sex",
+       shape = "Sex") 
+```
+### Comment
+#### 1). The trend consistent across education levels.
+#### 2). The highest total activity for both males and females was in the group with an educational level less than high school.
+#### 3). In both groups, with the exception of the group with an education level less than high school, women always had more total activity than men at the same age.
+
+## 7.  Make a three-panel plot that shows the 24-hour activity time courses for each education level and use color to indicate sex. 
+```{r}
+nhanes_panel <-nhanes %>%
+  pivot_longer(cols = starts_with("min"), 
+               names_to = "minute", 
+               values_to = "activity") %>%
+  mutate(minute = as.integer(gsub("min", "", minute)))
+
+ggplot(nhanes_panel, aes(x = minute, y = activity, color = sex)) +
+  geom_line(alpha = 0.5) +
+  geom_smooth(se = FALSE) +
+  facet_wrap(~ education, scales = "free_y", ncol = 1) +
+  scale_x_continuous(name = "Hour", breaks = seq(0, 1440, 60), labels = 0:24) +
+  labs(title = "24-hour Activity Time Courses by Education Level",
+       y = "Activity",
+       color = "Sex") 
+```
+
+### Comment
+#### 1). There are almost no gender differences in the activity patterns of the three educational groups.
+#### 2). All three groups were more active from about 9am to 8pm.
