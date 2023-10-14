@@ -13,6 +13,11 @@ library(knitr)
 
 # Q1
 
+```{r}
+data("instacart")
+```
+
+
 ## 1. Dataset Description:
 1. The dataset `instacart` has `r nrow(instacart)` observations and `r ncol(instacart)` variables.
 2. Variables in the dataset include `r colnames(instacart)`.
@@ -76,4 +81,3 @@ prohour <- instacart %>%
 
 knitr::kable(prohour, caption = "Mean Hour of Order by Product and Day of the Week", digits = 2)
 ```
-
