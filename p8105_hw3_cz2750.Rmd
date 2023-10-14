@@ -38,14 +38,14 @@ data("instacart")
 
 
 ## 1. Dataset Description:
-1. The dataset `instacart` has `r nrow(instacart)` observations and `r ncol(instacart)` variables.
-2. Variables in the dataset include `r colnames(instacart)`.
-3. Key variables:
-  1). order_id: order identifier
-  2). add_to_cart_order: order in which each product was added to cart
-  3). reordered: 1 if this prodcut has been ordered by this user in the past, 0 otherwise
-  4). order_dow: the day of the week on which the order was placed
-  5). product_name: name of the product
+### 1. The dataset `instacart` has `r nrow(instacart)` observations and `r ncol(instacart)` variables.
+### 2. Variables in the dataset include `r colnames(instacart)`.
+### 3. Key variables:
+#### 1). order_id: order identifier
+#### 2). add_to_cart_order: order in which each product was added to cart
+#### 3). reordered: 1 if this prodcut has been ordered by this user in the past, 0 otherwise
+#### 4). order_dow: the day of the week on which the order was placed
+#### 5). product_name: name of the product
   
 ## 2. Number of Aisles and which aisles are the most items ordered from
 ```{r}
@@ -57,8 +57,9 @@ aisle_counts <- instacart %>%
   slice(1) %>%
   pull(aisle) 
 ```
-1). There are 'r number' unique aisles.
-2). The most items are ordered from the 'aisle_counts'.
+### commenting
+#### 1). There are 'r number' unique aisles.
+#### 2). The most items are ordered from the 'aisle_counts'.
 
 ## 3. Make a plot that shows the number of items ordered in each aisle, limiting this to aisles with more than 10000 items ordered. Arrange aisles sensibly, and organize your plot so others can read it.
 ```{r}
@@ -145,8 +146,9 @@ states_2010 <- states %>%
   filter(year == 2010) %>%
   pull(location_abbr)
 ```
-1). In 2002, states observed at 7 or more locations were `r paste(states_2002, collapse=", ")`.
-2). In 2010, states observed at 7 or more locations were `r paste(states_2010, collapse=", ")`.
+### commenting
+#### 1). In 2002, states observed at 7 or more locations were `r paste(states_2002, collapse=", ")`.
+#### 2). In 2010, states observed at 7 or more locations were `r paste(states_2010, collapse=", ")`.
 
 ## 3. Construct a dataset and create a Spaghetti Plot for Excellent Responses
 ```{r}
@@ -161,6 +163,9 @@ ggplot(excellent_responses, aes(x = year, y = avg_data_value, group = location_a
        y = "Average Data Value") +
   theme_minimal() 
 ```
+### commenting
+#### 1). The plot depicts the trends of "Excellent" responses over time, averaged across locations within each state. 
+#### 2). There is a dense overlap of lines around the 20-25 cutoff, suggesting that many states have averages of "excellent" responses in this range in different years.
 
 ## 4. Two-Panel Plot for Distribution of Data Values in NY State (2006 and 2010)
 ```{r}
@@ -175,3 +180,26 @@ ggplot(ny_data, aes(x = response, y = data_value)) +
        x = "Response") +
   theme_minimal()
 ```
+### commenting
+#### 1). The plot shows the health perceptions of New York State residents by county in 2006 and 2010.
+#### 2). While there are variations between counties, the overall distribution seems to be somewhat consistent over the two years.
+
+# Q3
+
+## 1. Data Loading, Cleaning and Tidying
+```{r}
+nhanes_accel <- read_csv("nhanes_accel.csv")  %>%
+  janitor::clean_names()
+nhanes_covar <- read_csv("nhanes_covar.csv") %>%
+  janitor::clean_names()
+
+nhanes_covar <- nhanes_covar[-c(1:4),] 
+colnames(nhanes_covar) <- c("seqn", "sex", "age", "bmi", "education")
+nhanes_covar$seqn <- as.integer(nhanes_covar$seqn)
+nhanes_covar$age <- as.numeric(nhanes_covar$age)
+nhanes_covar$bmi <- as.numeric(nhanes_covar$bmi)
+
+nhanes_accel$seqn <- as.integer(nhanes_accel$seqn)
+```
+
+## 2. 
